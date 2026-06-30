@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Knowledge / RAG plugin config",
+  "description": "Schema-validated, config-driven knobs for the knowledge plugin (plugin-architecture.md §11). Defaults here are the effective values the Loader hands the plugin via ctx.config; full value-validation runs in CI (scripts/check_manifests.py).",
+  "type": "object",
+  "properties": {
+    "top_k": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 50,
+      "default": 5,
+      "description": "How many chunks retrieval returns for an answer/search."
+    },
+    "min_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.0,
+      "description": "Drop retrieved chunks below this cosine score (0 = keep all)."
+    }
+  },
+  "additionalProperties": false
+}
