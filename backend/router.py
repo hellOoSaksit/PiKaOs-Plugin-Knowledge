@@ -12,7 +12,7 @@ import uuid
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...core import queue
+from . import queue_ref
 from ...core.config import settings
 from ...core.db import get_db
 from ...core.identity import UserLike, require_perm
@@ -54,7 +54,7 @@ async def upload_document(
     )
     # Index it for RAG in the background (E2). Best-effort: a Redis outage leaves the file
     # stored with ingest_status="pending" — it just isn't searchable until re-ingested.
-    await queue.enqueue("ingest_document", str(doc.id))
+    await queue_ref.enqueue("ingest_document", str(doc.id))
     return DocumentOut.model_validate(doc)
 
 
@@ -110,7 +110,7 @@ async def reindex_documents(
     )
     queued = 0
     for doc_id in ids:
-        if await queue.enqueue("ingest_document", str(doc_id)):
+        if await queue_ref.enqueue("ingest_document", str(doc_id)):
             queued += 1
     return KnowledgeReindexOut(queued=queued, matched=len(ids), model=model)
 

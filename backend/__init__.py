@@ -23,15 +23,16 @@ jobs = [ingest_document]
 def register(ctx) -> None:
     """Bind `knowledge.Retriever` into the DI container, and stash the `minio.Storage` facade + `ai.LLM`
     factory resolved from the container so this plugin's services reach storage + the LLM through the
-    contracts — never importing the sibling `minio`/`ai` plugins (§2.3). Knowledge declares
-    `dependencies: ["ai", "minio"]`, so both are registered before this runs."""
-    from ...core.contracts import AI_LLM, RETRIEVER, STORAGE
+    contracts — never importing the sibling `minio`/`ai`/`redis` plugins (§2.3). Knowledge declares
+    `dependencies: ["ai", "minio", "redis"]`, so all are registered before this runs."""
+    from ...core.contracts import AI_LLM, REDIS_QUEUE, RETRIEVER, STORAGE
     from .retriever import KnowledgeRetriever
-    from . import llm_ref, storage_ref
+    from . import llm_ref, queue_ref, storage_ref
 
     ctx.container.bind(RETRIEVER, KnowledgeRetriever())
     storage_ref.set_storage(ctx.container.resolve(STORAGE))
     llm_ref.set_factory(ctx.container.resolve(AI_LLM))
+    queue_ref.set_queue(ctx.container.resolve(REDIS_QUEUE))
 
 
 __all__ = ["router", "jobs", "register"]
