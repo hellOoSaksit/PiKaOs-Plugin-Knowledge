@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...core import queue
 from ...core.config import settings
 from ...core.db import get_db
-from ...core.deps import require_perm
+from ...core.identity import require_perm
 from ...core.models import User
 from ...core.schemas import (
     DocumentListOut,
