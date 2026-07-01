@@ -15,8 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...core import queue
 from ...core.config import settings
 from ...core.db import get_db
-from ...core.identity import require_perm
-from ...core.models import User
+from ...core.identity import UserLike, require_perm
 from ...core.schemas import (
     DocumentListOut,
     DocumentOut,
@@ -40,7 +39,7 @@ _MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # 25 MB
 async def upload_document(
     file: UploadFile = File(...),
     department_id: uuid.UUID | None = Form(default=None),
-    user: User = Depends(require_perm("codex.manage")),
+    user: UserLike = Depends(require_perm("codex.manage")),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentOut:
     """Store an uploaded file in the codex (MinIO + metadata row)."""
@@ -64,7 +63,7 @@ async def upload_document(
 async def search_documents(
     q: str,
     k: int = 0,
-    user: User = Depends(require_perm("codex.view")),
+    user: UserLike = Depends(require_perm("codex.view")),
     db: AsyncSession = Depends(get_db),
 ) -> KnowledgeSearchOut:
     """Semantic search over the codex (RAG retrieval). Returns the top-k chunks the caller may
@@ -79,7 +78,7 @@ async def search_documents(
 @router.post("/answer", response_model=KnowledgeAnswerOut)
 async def answer_question(
     body: KnowledgeAnswerIn,
-    user: User = Depends(require_perm("codex.view")),
+    user: UserLike = Depends(require_perm("codex.view")),
     db: AsyncSession = Depends(get_db),
 ) -> KnowledgeAnswerOut:
     """Ask a question and get an answer synthesized from the codex, with citations (E8). Retrieves
@@ -97,7 +96,7 @@ async def answer_question(
 @router.post("/reindex", response_model=KnowledgeReindexOut)
 async def reindex_documents(
     only_stale: bool = True,
-    user: User = Depends(require_perm("codex.manage")),
+    user: UserLike = Depends(require_perm("codex.manage")),
     db: AsyncSession = Depends(get_db),
 ) -> KnowledgeReindexOut:
     """Rebuild the RAG index from the markdown source (knowledge-rag.md §3 'single rebuild
@@ -122,7 +121,7 @@ async def list_documents(
     kind: str | None = None,
     limit: int = 50,
     offset: int = 0,
-    user: User = Depends(require_perm("codex.view")),
+    user: UserLike = Depends(require_perm("codex.view")),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentListOut:
     """Documents visible to the caller (own + department + org-wide), newest first."""
@@ -137,7 +136,7 @@ async def list_documents(
 @router.get("/docs/{doc_id}", response_model=DocumentOut)
 async def get_document(
     doc_id: uuid.UUID,
-    user: User = Depends(require_perm("codex.view")),
+    user: UserLike = Depends(require_perm("codex.view")),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentOut:
     """Document metadata + a presigned download URL."""
@@ -155,7 +154,7 @@ async def get_document(
 @router.delete("/docs/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     doc_id: uuid.UUID,
-    user: User = Depends(require_perm("codex.delete")),
+    user: UserLike = Depends(require_perm("codex.delete")),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Delete a document (owner or admin)."""

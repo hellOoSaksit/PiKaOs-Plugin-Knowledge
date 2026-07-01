@@ -19,7 +19,8 @@ import re
 import uuid
 
 from .storage_ref import get_storage
-from ...core.models import Document, User
+from ...core.models import Document
+from ...core.identity import UserLike
 from . import doc_chunks as chunks_repo
 from . import documents as docs_repo
 from ...core.services.embeddings import Embedder
@@ -67,24 +68,24 @@ def infer_kind(content_type: str | None, name: str | None) -> str:
     return "other"
 
 
-def _is_admin(user: User) -> bool:
+def _is_admin(user: UserLike) -> bool:
     return getattr(user, "role", None) == "admin"
 
 
-def can_view(user: User, doc: Document, dept_ids: list[uuid.UUID]) -> bool:
+def can_view(user: UserLike, doc: Document, dept_ids: list[uuid.UUID]) -> bool:
     """Read access: admin · owner · org-wide doc · a doc in one of the user's departments."""
     if _is_admin(user) or doc.owner_id == user.id:
         return True
     return doc.department_id is None or doc.department_id in dept_ids
 
 
-def can_manage(user: User, doc: Document) -> bool:
+def can_manage(user: UserLike, doc: Document) -> bool:
     """Delete/overwrite: owner or admin (the route already required `codex.manage`)."""
     return _is_admin(user) or doc.owner_id == user.id
 
 
 async def create_document(
-    db, *, user: User, data: bytes, name: str | None,
+    db, *, user: UserLike, data: bytes, name: str | None,
     content_type: str | None, department_id: uuid.UUID | None,
 ) -> Document:
     doc_id = uuid.uuid4()
@@ -98,7 +99,7 @@ async def create_document(
     )
 
 
-async def list_documents(db, *, user: User, kind: str | None, limit: int, offset: int):
+async def list_documents(db, *, user: UserLike, kind: str | None, limit: int, offset: int):
     """(items, total) of documents visible to `user`, newest first."""
     dept_ids = None if _is_admin(user) else await docs_repo.user_department_ids(db, user.id)
     items = await docs_repo.list_documents(db, dept_ids=dept_ids, kind=kind, limit=limit, offset=offset)
@@ -106,7 +107,7 @@ async def list_documents(db, *, user: User, kind: str | None, limit: int, offset
     return items, total
 
 
-async def get_document_with_url(db, *, user: User, doc_id: uuid.UUID) -> tuple[Document, str]:
+async def get_document_with_url(db, *, user: UserLike, doc_id: uuid.UUID) -> tuple[Document, str]:
     """The document + a presigned download URL, or raise NotFound / Forbidden."""
     doc = await docs_repo.get_document(db, doc_id)
     if doc is None:
@@ -121,7 +122,7 @@ async def get_document_with_url(db, *, user: User, doc_id: uuid.UUID) -> tuple[D
     return doc, url
 
 
-async def search_documents(db, *, embedder: Embedder, user: User, query: str, k: int) -> list[dict]:
+async def search_documents(db, *, embedder: Embedder, user: UserLike, query: str, k: int) -> list[dict]:
     """Semantic search over the codex (RAG retrieval — phase E/M2). Embeds the query and returns
     the top-k chunks the user may read, scoped exactly like `can_view` (admin sees all; everyone
     else sees org-wide + their departments + their own docs). Each result is
@@ -138,7 +139,7 @@ async def search_documents(db, *, embedder: Embedder, user: User, query: str, k:
 
 
 async def reindex_targets(
-    db, *, user: User, only_stale: bool, current_model: str
+    db, *, user: UserLike, only_stale: bool, current_model: str
 ) -> list[uuid.UUID]:
     """Document ids to re-ingest for a RAG rebuild (knowledge-rag.md §3 'single rebuild command').
     Admin rebuilds the whole corpus; anyone else (the route already required `codex.manage`)
@@ -150,7 +151,7 @@ async def reindex_targets(
     return await docs_repo.ids_for_reindex(db, owner_id=owner_id, exclude_model=exclude)
 
 
-async def delete_document(db, *, user: User, doc_id: uuid.UUID) -> None:
+async def delete_document(db, *, user: UserLike, doc_id: uuid.UUID) -> None:
     doc = await docs_repo.get_document(db, doc_id)
     if doc is None:
         raise NotFound

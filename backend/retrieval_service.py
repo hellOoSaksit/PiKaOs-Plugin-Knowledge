@@ -15,7 +15,6 @@ import uuid
 
 from . import doc_chunks as chunks_repo
 from . import documents as docs_repo
-from ...core.repositories import users as users_repo
 from ...core.services.embeddings import Embedder, get_embedder
 
 
@@ -53,8 +52,8 @@ async def context_for_run(
     query = (query or "").strip()
     if k <= 0 or not query:
         return None
-    user = await users_repo.get_by_id(db, owner_id) if owner_id else None
-    if user is not None and user.role == "admin":
+    role = await docs_repo.user_role(db, owner_id) if owner_id else None
+    if role == "admin":
         dept_ids, owner = None, None            # admin → no scope filter
     else:
         dept_ids = await docs_repo.user_department_ids(db, owner_id) if owner_id else []

@@ -8,16 +8,30 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import delete as sql_delete
+from sqlalchemy import String, column, delete as sql_delete, table
 from sqlalchemy import func, select
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...core.models import Document, UserDepartment
+from ...core.models import Document
+
+# Logical cross-plugin reads: `users` + `user_departments` are owned by the auth plugin (Phase C). We
+# reference them by table name — no model import, no FK across the plugin boundary (logical-UUID rule).
+# Typed columns so asyncpg binds the UUID param correctly.
+_users = table("users", column("id", UUID(as_uuid=True)), column("role", String))
+_user_departments = table(
+    "user_departments", column("user_id", UUID(as_uuid=True)), column("department_id", UUID(as_uuid=True))
+)
+
+
+async def user_role(db: AsyncSession, user_id: uuid.UUID) -> str | None:
+    """The user's role by id, or None if unknown (logical read of the auth-owned `users` table)."""
+    return (await db.execute(select(_users.c.role).where(_users.c.id == user_id))).scalar_one_or_none()
 
 
 async def user_department_ids(db: AsyncSession, user_id: uuid.UUID) -> list[uuid.UUID]:
     """The departments a user belongs to — the scope used to filter visible documents."""
-    stmt = select(UserDepartment.department_id).where(UserDepartment.user_id == user_id)
+    stmt = select(_user_departments.c.department_id).where(_user_departments.c.user_id == user_id)
     return list((await db.execute(stmt)).scalars().all())
 
 
