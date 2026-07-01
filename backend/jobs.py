@@ -9,7 +9,7 @@ import uuid
 
 from ...core.config import settings
 from ...core.db import SessionLocal
-from ...core.services.embeddings import get_embedder  # Base shared infra (used by db/models/config too)
+from .embeddings import get_embedder
 from ...core.services.llm_config_service import ConfiguredLLMProvider
 from . import ingestion_service
 

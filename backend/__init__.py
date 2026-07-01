@@ -1,16 +1,18 @@
 """Knowledge plugin — codex/documents + RAG (ingest · chunk · embed · search · answer).
 
-A **plugin** (off unless ENABLED_MODULES lists `knowledge`). Was flat under app/routers/knowledge.py +
-app/services/{ingestion,retrieval,summarize,answer,knowledge}_service.py + chunking/converters +
-app/repositories/{doc_chunks,documents}.py; moved here per [extraction-plan.md]. The shared
-`embeddings` + the `vector(N)` column type stay in the **Base** (used by db/models/config), so this
-plugin depends on the Base — never the reverse. The engine consumes RAG only through the `Retriever`
-contract this plugin `register()`s into the DI container (Phase 3), so the Base never imports this plugin.
+A **plugin** (off unless ENABLED_MODULES lists `knowledge`). Data layer (knowledge extraction): this
+plugin OWNS `documents` + `doc_chunks` + the pgvector `Vector` column type + the `embeddings` service —
+all on its own `Base` metadata (models.py), created by `migrate.migrate()` (CREATE EXTENSION vector →
+create_all → HNSW index), run per enabled plugin by the kernel's `scripts.migrate_plugins`. Core's
+Alembic no longer owns these tables. Cross-plugin refs (owner_id/department_id → auth.users/departments)
+are logical UUIDs, no FK. The engine consumes RAG only through the `Retriever` contract this plugin
+`register()`s into the DI container, so Core never imports this plugin.
 
 Package surface the Loader looks for (plugin-architecture.md §5/§10):
   router    — mounted by modules.register_routers when this plugin is enabled
   register  — binds the `knowledge.Retriever` contract into the container
   jobs      — the arq job(s) the worker runs when this plugin is enabled
+  migrate   — install-time schema step (extension + create_all + HNSW), run by scripts.migrate_plugins
 """
 from .jobs import ingest_document
 from .router import router

@@ -26,7 +26,7 @@ from ...core.schemas import (
     KnowledgeSearchResult,
 )
 from . import answer_service, knowledge_service
-from ...core.services.embeddings import get_embedder
+from .embeddings import get_embedder
 from ...core.services.llm_config_service import ConfiguredLLMProvider
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])

@@ -19,11 +19,11 @@ import re
 import uuid
 
 from .storage_ref import get_storage
-from ...core.models import Document
+from .models import Document
 from ...core.identity import UserLike
 from . import doc_chunks as chunks_repo
 from . import documents as docs_repo
-from ...core.services.embeddings import Embedder
+from .embeddings import Embedder
 
 
 class NotFound(Exception):

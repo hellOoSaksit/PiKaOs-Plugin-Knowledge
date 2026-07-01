@@ -15,7 +15,7 @@ import uuid
 
 from . import doc_chunks as chunks_repo
 from . import documents as docs_repo
-from ...core.services.embeddings import Embedder, get_embedder
+from .embeddings import Embedder, get_embedder
 
 
 def query_from_input(run_input: dict | None) -> str:

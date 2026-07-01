@@ -5,10 +5,10 @@
   "coreVersion": "^0.1.0",
   "dependencies": ["minio"],
   "provides": ["knowledge.Retriever"],
-  "consumes": ["core.User", "minio.Storage"],
+  "consumes": ["minio.Storage"],
   "permissions": ["knowledge.view", "knowledge.ingest"],
   "routes": ["/api/knowledge"],
   "events": { "emits": ["knowledge.ingested"], "listens": [] },
   "config": { "schema": "./config.schema.json" },
-  "migrations": "central (app/alembic — relocated per-plugin in a later phase)"
+  "migrations": "plugin-owned (backend/migrate.py: CREATE EXTENSION vector -> create_all -> HNSW; run by scripts.migrate_plugins)"
 }

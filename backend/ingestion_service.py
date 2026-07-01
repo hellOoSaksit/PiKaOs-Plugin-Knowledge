@@ -25,7 +25,7 @@ from ...core.config import settings
 from . import doc_chunks as chunks_repo
 from . import documents as docs_repo
 from . import chunking, converters, summarize_service
-from ...core.services.embeddings import Embedder
+from .embeddings import Embedder
 
 log = logging.getLogger("pikaos.engine.ingest")
 

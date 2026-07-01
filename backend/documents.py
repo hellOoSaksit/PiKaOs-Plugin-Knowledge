@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...core.models import Document
+from .models import Document
 
 # Logical cross-plugin reads: `users` + `user_departments` are owned by the auth plugin (Phase C). We
 # reference them by table name — no model import, no FK across the plugin boundary (logical-UUID rule).

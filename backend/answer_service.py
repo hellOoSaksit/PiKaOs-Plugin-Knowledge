@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 
 from . import knowledge_service
-from ...core.services.embeddings import Embedder
+from .embeddings import Embedder
 from .retrieval_service import format_context
 
 log = logging.getLogger("pikaos.knowledge.answer")
