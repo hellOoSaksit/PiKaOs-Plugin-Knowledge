@@ -18,7 +18,7 @@ import asyncio
 import re
 import uuid
 
-from ..minio import storage
+from .storage_ref import get_storage
 from ...core.models import Document, User
 from . import doc_chunks as chunks_repo
 from . import documents as docs_repo
@@ -90,7 +90,7 @@ async def create_document(
     doc_id = uuid.uuid4()
     key = build_object_key(doc_id, name)
     ct = (content_type or "application/octet-stream")
-    await asyncio.to_thread(storage.put_object, key, data, ct)
+    await asyncio.to_thread(get_storage().put_object, key, data, ct)
     return await docs_repo.insert_document(
         db, doc_id=doc_id, owner_id=user.id, department_id=department_id,
         kind=infer_kind(content_type, name), name=(name or "file")[:255],
@@ -117,7 +117,7 @@ async def get_document_with_url(db, *, user: User, doc_id: uuid.UUID) -> tuple[D
     # Download the original upload (the Ref) when it was converted to markdown for RAG — the user
     # wants the file they uploaded, not the derived markdown (knowledge-rag.md §6.4).
     download_key = doc.source_object_key or doc.object_key
-    url = await asyncio.to_thread(storage.presigned_get, download_key)
+    url = await asyncio.to_thread(get_storage().presigned_get, download_key)
     return doc, url
 
 
@@ -162,7 +162,7 @@ async def delete_document(db, *, user: User, doc_id: uuid.UUID) -> None:
         if not key:
             continue
         try:
-            await asyncio.to_thread(storage.remove_object, key)
+            await asyncio.to_thread(get_storage().remove_object, key)
         except Exception:  # noqa: BLE001 — object may already be gone
             pass
     await docs_repo.delete_document(db, doc_id)

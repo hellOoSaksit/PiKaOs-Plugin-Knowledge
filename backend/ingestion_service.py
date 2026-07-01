@@ -20,7 +20,7 @@ import logging
 
 import uuid
 
-from ..minio import storage
+from .storage_ref import get_storage
 from ...core.config import settings
 from . import doc_chunks as chunks_repo
 from . import documents as docs_repo
@@ -52,7 +52,7 @@ async def _markdown_body(db, doc) -> str | None:
     (`source_object_key`) — knowledge-rag.md §6.4. md/log (and already-converted docs, where
     `source_object_key` is set) are read back as text. Returns None when a converted file yields no
     embeddable text (e.g. a scanned PDF → OCR deferred), so the caller marks it `skipped`."""
-    raw = await asyncio.to_thread(storage.get_object, doc.object_key)
+    raw = await asyncio.to_thread(get_storage().get_object, doc.object_key)
     # object_key already points at markdown: a text-native kind, or a pdf/docx converted before.
     if doc.source_object_key is not None or doc.kind not in converters.CONVERTED_KINDS:
         return raw.decode("utf-8", errors="replace")
@@ -61,7 +61,7 @@ async def _markdown_body(db, doc) -> str | None:
     if md is None:
         return None
     md_key = f"{doc.object_key}.md"
-    await asyncio.to_thread(storage.put_object, md_key, md.encode("utf-8"), "text/markdown")
+    await asyncio.to_thread(get_storage().put_object, md_key, md.encode("utf-8"), "text/markdown")
     await docs_repo.set_converted_markdown(db, doc.id, markdown_key=md_key, source_key=doc.object_key)
     return md
 

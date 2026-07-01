@@ -19,13 +19,15 @@ jobs = [ingest_document]
 
 
 def register(ctx) -> None:
-    """Bind this plugin's provided contract — `knowledge.Retriever` (manifest `provides`) — into the DI
-    container. The engine resolves it at worker startup; neither side imports the other (§5). Imported
-    lazily so merely listing the plugin never drags the impl in until it's actually wired."""
-    from ...core.contracts import RETRIEVER
+    """Bind `knowledge.Retriever` into the DI container, and stash the `minio.Storage` facade resolved
+    from the container so this plugin's services reach storage through the contract — never importing the
+    sibling `minio` plugin (§2.3)."""
+    from ...core.contracts import RETRIEVER, STORAGE
     from .retriever import KnowledgeRetriever
+    from . import storage_ref
 
     ctx.container.bind(RETRIEVER, KnowledgeRetriever())
+    storage_ref.set_storage(ctx.container.resolve(STORAGE))
 
 
 __all__ = ["router", "jobs", "register"]
