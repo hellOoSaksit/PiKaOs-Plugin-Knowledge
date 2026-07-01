@@ -10,8 +10,7 @@ import uuid
 from ...core.config import settings
 from ...core.db import SessionLocal
 from .embeddings import get_embedder
-from ...core.services.llm_config_service import ConfiguredLLMProvider
-from . import ingestion_service
+from . import ingestion_service, llm_ref
 
 
 async def ingest_document(ctx, doc_id: str) -> str:
@@ -21,7 +20,7 @@ async def ingest_document(ctx, doc_id: str) -> str:
     ingest stays free/offline. On success emits `knowledge.ingested` on the Event Bus (§5) when the worker
     wired one into the arq context — a no-op today (no listeners) but the published contract is live."""
     embedder = get_embedder()
-    summarizer = ConfiguredLLMProvider(role="summarize") if settings.ingest_summary_enabled else None
+    summarizer = llm_ref.provider_for("summarize") if settings.ingest_summary_enabled else None
     async with SessionLocal() as db:
         result = await ingestion_service.ingest_document(
             db, embedder, uuid.UUID(doc_id), summarizer=summarizer

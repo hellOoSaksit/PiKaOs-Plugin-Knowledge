@@ -25,9 +25,8 @@ from ...core.schemas import (
     KnowledgeSearchOut,
     KnowledgeSearchResult,
 )
-from . import answer_service, knowledge_service
+from . import answer_service, knowledge_service, llm_ref
 from .embeddings import get_embedder
-from ...core.services.llm_config_service import ConfiguredLLMProvider
 
 router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 
@@ -87,7 +86,7 @@ async def answer_question(
     back to the stub offline). `k<=0` uses the server default (`rag_answer_top_k`)."""
     k = settings.rag_answer_top_k if body.k <= 0 else max(1, min(body.k, 50))
     result = await answer_service.answer_question(
-        db, embedder=get_embedder(), provider=ConfiguredLLMProvider(role="answer"),
+        db, embedder=get_embedder(), provider=llm_ref.provider_for("answer"),
         user=user, question=body.question, k=k, rewrite=settings.rag_answer_rewrite,
     )
     return KnowledgeAnswerOut(**result)
