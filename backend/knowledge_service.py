@@ -18,7 +18,7 @@ import asyncio
 import re
 import uuid
 
-from ...core import storage
+from ..minio import storage
 from ...core.models import Document, User
 from . import doc_chunks as chunks_repo
 from . import documents as docs_repo
