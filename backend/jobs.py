@@ -8,9 +8,8 @@ from __future__ import annotations
 import uuid
 
 from ...core.config import settings
-from ...core.db import SessionLocal
 from .embeddings import get_embedder
-from . import ingestion_service, llm_ref
+from . import db_ref, ingestion_service, llm_ref
 
 
 async def ingest_document(ctx, doc_id: str) -> str:
@@ -21,7 +20,7 @@ async def ingest_document(ctx, doc_id: str) -> str:
     wired one into the arq context — a no-op today (no listeners) but the published contract is live."""
     embedder = get_embedder()
     summarizer = llm_ref.provider_for("summarize") if settings.ingest_summary_enabled else None
-    async with SessionLocal() as db:
+    async with db_ref.new_session() as db:
         result = await ingestion_service.ingest_document(
             db, embedder, uuid.UUID(doc_id), summarizer=summarizer
         )

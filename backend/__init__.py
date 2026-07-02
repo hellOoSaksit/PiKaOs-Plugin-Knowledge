@@ -24,12 +24,15 @@ def register(ctx) -> None:
     """Bind `knowledge.Retriever` into the DI container, and stash the `minio.Storage` facade + `ai.LLM`
     factory resolved from the container so this plugin's services reach storage + the LLM through the
     contracts — never importing the sibling `minio`/`ai`/`redis` plugins (§2.3). Knowledge declares
-    `dependencies: ["ai", "minio", "redis"]`, so all are registered before this runs."""
-    from ...core.contracts import AI_LLM, REDIS_QUEUE, RETRIEVER, STORAGE
+    `dependencies: ["postgres", "ai", "minio", "redis"]`, so all are registered before this runs."""
+    from ...core.contracts import AI_LLM, POSTGRES_CONNECTION, REDIS_QUEUE, RETRIEVER, STORAGE
     from .retriever import KnowledgeRetriever
-    from . import llm_ref, queue_ref, storage_ref
+    from . import db_ref, llm_ref, queue_ref, storage_ref
 
     ctx.container.bind(RETRIEVER, KnowledgeRetriever())
+    # Zero-datastore kernel: the ingest job's session factory comes from the postgres Tool's contract
+    # (a declared dependency, so it registered first), not a kernel SessionLocal.
+    db_ref.set_factory(ctx.container.resolve(POSTGRES_CONNECTION))
     storage_ref.set_storage(ctx.container.resolve(STORAGE))
     llm_ref.set_factory(ctx.container.resolve(AI_LLM))
     queue_ref.set_queue(ctx.container.resolve(REDIS_QUEUE))

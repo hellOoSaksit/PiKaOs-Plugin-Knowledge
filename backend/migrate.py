@@ -4,8 +4,8 @@ The kernel migration runner (`scripts.migrate_plugins`) calls `migrate(engine, s
 each enabled plugin after Core's Alembic baseline. Knowledge owns `documents` + `doc_chunks` on its own
 `Base` metadata (models.py), so here we enable pgvector, create the tables, and build the HNSW index.
 
-We deliberately use a DEDICATED, codec-free engine (not the passed-in app engine): `app.core.db.engine`
-registers pgvector's asyncpg codec on every connect, which requires the `vector` type to already exist —
+We deliberately use a DEDICATED, codec-free engine (not the passed-in app engine): the postgres Tool's
+engine registers pgvector's asyncpg codec on every connect, which requires the `vector` type to exist —
 a chicken/egg when WE are the one creating the extension. The extension is created in its own committed
 transaction so the follow-up connection sees the type before `create_all` emits the `vector(N)` column.
 
