@@ -1,0 +1,6 @@
+# Knowledge owns document ingestion (pdf/docx → markdown), file upload, and embedding HTTP calls.
+# sqlalchemy + pgvector come from the postgres tool it depends on; the ai.LLM contract comes from ai.
+pypdf==5.1.0
+mammoth==1.8.0
+python-multipart==0.0.32   # FastAPI file upload (router.py UploadFile)
+httpx==0.28.1              # embeddings: HTTP calls to the embedding provider (e.g. Ollama)
