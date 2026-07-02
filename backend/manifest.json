@@ -3,12 +3,52 @@
   "name": "Knowledge / RAG",
   "version": "0.1.0",
   "coreVersion": "^0.1.0",
-  "dependencies": ["postgres", "ai", "minio", "redis"],
-  "provides": ["knowledge.Retriever"],
-  "consumes": ["postgres.Connection", "ai.LLM", "minio.Storage", "redis.Queue"],
-  "permissions": ["knowledge.view", "knowledge.ingest"],
-  "routes": ["/api/knowledge"],
-  "events": { "emits": ["knowledge.ingested"], "listens": [] },
-  "config": { "schema": "./config.schema.json" },
+  "dependencies": [
+    "postgres",
+    "ai",
+    "minio",
+    "redis"
+  ],
+  "provides": [
+    "knowledge.Retriever"
+  ],
+  "consumes": [
+    "postgres.Connection",
+    "ai.LLM",
+    "minio.Storage",
+    "redis.Queue"
+  ],
+  "permissions": [
+    {
+      "key": "knowledge.view",
+      "group": "Knowledge",
+      "name_th": "ดู/ค้นหาคลังความรู้",
+      "name_en": "View & search knowledge"
+    },
+    {
+      "key": "knowledge.manage",
+      "group": "Knowledge",
+      "name_th": "อัปโหลด/จัดการเนื้อหาคลังความรู้",
+      "name_en": "Upload & manage knowledge content"
+    },
+    {
+      "key": "knowledge.delete",
+      "group": "Knowledge",
+      "name_th": "ลบเอกสารในคลังความรู้",
+      "name_en": "Delete knowledge documents"
+    }
+  ],
+  "routes": [
+    "/api/knowledge"
+  ],
+  "events": {
+    "emits": [
+      "knowledge.ingested"
+    ],
+    "listens": []
+  },
+  "config": {
+    "schema": "./config.schema.json"
+  },
   "migrations": "plugin-owned (backend/migrate.py: CREATE EXTENSION vector -> create_all -> HNSW; run by scripts.migrate_plugins)"
 }

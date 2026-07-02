@@ -43,8 +43,8 @@ export default {
   // gets them; remove ⇒ they disappear. Keys match what the backend router enforces (require_perm
   // ("codex.*")) so one name gates both the API and the UI.
   permissions: [
-    { key: 'codex.view',   group: 'Knowledge', th: 'ดู/ค้นหาคลังความรู้',            en: 'View & search codex' },
-    { key: 'codex.manage', group: 'Knowledge', th: 'อัปโหลด/จัดการเนื้อหาคลังความรู้', en: 'Upload & manage codex content' },
-    { key: 'codex.delete', group: 'Knowledge', th: 'ลบเอกสารในคลังความรู้',          en: 'Delete codex documents' },
+    { key: 'knowledge.view',   group: 'Knowledge', th: 'ดู/ค้นหาคลังความรู้',            en: 'View & search codex' },
+    { key: 'knowledge.manage', group: 'Knowledge', th: 'อัปโหลด/จัดการเนื้อหาคลังความรู้', en: 'Upload & manage codex content' },
+    { key: 'knowledge.delete', group: 'Knowledge', th: 'ลบเอกสารในคลังความรู้',          en: 'Delete codex documents' },
   ],
 };

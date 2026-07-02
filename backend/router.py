@@ -1,9 +1,9 @@
 """Knowledge / codex HTTP routes — the document store (markdown-as-truth).
 
 Thin edge over services/knowledge_service (§2.1): parse the request → call the service →
-shape the response / map domain errors to HTTP. Permission split: reads require `codex.view`
-(then department-scoped in the service), upload/reindex require `codex.manage`, and deleting a
-document requires `codex.delete`. RAG search lands here later (phase E) as `GET /search`.
+shape the response / map domain errors to HTTP. Permission split: reads require `knowledge.view`
+(then department-scoped in the service), upload/reindex require `knowledge.manage`, and deleting a
+document requires `knowledge.delete`. RAG search lands here later (phase E) as `GET /search`.
 """
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ _MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # 25 MB
 async def upload_document(
     file: UploadFile = File(...),
     department_id: uuid.UUID | None = Form(default=None),
-    user: UserLike = Depends(require_perm("codex.manage")),
+    user: UserLike = Depends(require_perm("knowledge.manage")),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentOut:
     """Store an uploaded file in the codex (MinIO + metadata row)."""
@@ -62,7 +62,7 @@ async def upload_document(
 async def search_documents(
     q: str,
     k: int = 0,
-    user: UserLike = Depends(require_perm("codex.view")),
+    user: UserLike = Depends(require_perm("knowledge.view")),
     db: AsyncSession = Depends(get_db),
 ) -> KnowledgeSearchOut:
     """Semantic search over the codex (RAG retrieval). Returns the top-k chunks the caller may
@@ -77,7 +77,7 @@ async def search_documents(
 @router.post("/answer", response_model=KnowledgeAnswerOut)
 async def answer_question(
     body: KnowledgeAnswerIn,
-    user: UserLike = Depends(require_perm("codex.view")),
+    user: UserLike = Depends(require_perm("knowledge.view")),
     db: AsyncSession = Depends(get_db),
 ) -> KnowledgeAnswerOut:
     """Ask a question and get an answer synthesized from the codex, with citations (E8). Retrieves
@@ -95,7 +95,7 @@ async def answer_question(
 @router.post("/reindex", response_model=KnowledgeReindexOut)
 async def reindex_documents(
     only_stale: bool = True,
-    user: UserLike = Depends(require_perm("codex.manage")),
+    user: UserLike = Depends(require_perm("knowledge.manage")),
     db: AsyncSession = Depends(get_db),
 ) -> KnowledgeReindexOut:
     """Rebuild the RAG index from the markdown source (knowledge-rag.md §3 'single rebuild
@@ -120,7 +120,7 @@ async def list_documents(
     kind: str | None = None,
     limit: int = 50,
     offset: int = 0,
-    user: UserLike = Depends(require_perm("codex.view")),
+    user: UserLike = Depends(require_perm("knowledge.view")),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentListOut:
     """Documents visible to the caller (own + department + org-wide), newest first."""
@@ -135,7 +135,7 @@ async def list_documents(
 @router.get("/docs/{doc_id}", response_model=DocumentOut)
 async def get_document(
     doc_id: uuid.UUID,
-    user: UserLike = Depends(require_perm("codex.view")),
+    user: UserLike = Depends(require_perm("knowledge.view")),
     db: AsyncSession = Depends(get_db),
 ) -> DocumentOut:
     """Document metadata + a presigned download URL."""
@@ -153,7 +153,7 @@ async def get_document(
 @router.delete("/docs/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_document(
     doc_id: uuid.UUID,
-    user: UserLike = Depends(require_perm("codex.delete")),
+    user: UserLike = Depends(require_perm("knowledge.delete")),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Delete a document (owner or admin)."""

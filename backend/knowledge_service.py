@@ -8,7 +8,7 @@ its metadata row, and list/get/delete with owner + department scoping. No SQL he
 Scoping (system-design §7.1 — single org, many departments):
 * a document with `department_id = NULL` is org-wide (everyone may read it);
 * otherwise only members of that department (and the owner, and admins) may read it;
-* write/delete are gated by the `codex.manage` permission AND ownership (admins override).
+* write/delete are gated by the `knowledge.manage` permission AND ownership (admins override).
 
 MinIO calls are sync (minio lib) → run off the event loop with `asyncio.to_thread`.
 """
@@ -80,7 +80,7 @@ def can_view(user: UserLike, doc: Document, dept_ids: list[uuid.UUID]) -> bool:
 
 
 def can_manage(user: UserLike, doc: Document) -> bool:
-    """Delete/overwrite: owner or admin (the route already required `codex.manage`)."""
+    """Delete/overwrite: owner or admin (the route already required `knowledge.manage`)."""
     return _is_admin(user) or doc.owner_id == user.id
 
 
@@ -142,7 +142,7 @@ async def reindex_targets(
     db, *, user: UserLike, only_stale: bool, current_model: str
 ) -> list[uuid.UUID]:
     """Document ids to re-ingest for a RAG rebuild (knowledge-rag.md §3 'single rebuild command').
-    Admin rebuilds the whole corpus; anyone else (the route already required `codex.manage`)
+    Admin rebuilds the whole corpus; anyone else (the route already required `knowledge.manage`)
     rebuilds only their own documents — re-embedding the org corpus is an admin-cost operation.
     `only_stale=True` skips docs already embedded with `current_model` (the 'I switched the
     embedder, re-embed the rest' case); False forces a full rebuild from markdown."""
