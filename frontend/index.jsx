@@ -14,17 +14,19 @@ import React from 'react';
 import { Codex } from './codex.jsx';
 import { Recall } from './recall.jsx';
 
+// `icon` names come from Core's design-system set (components/ui/icons.jsx) and stay plain
+// strings — the shell resolves them, so this descriptor never imports Core.
 export default {
   id: 'knowledge',
   routes: [
     {
       id: 'codex',
-      meta: { icon: '📚', title: 'บันทึกความรู้', en: 'Codex' },
+      meta: { icon: 'book', title: 'บันทึกความรู้', en: 'Codex' },
       render: (ctx) => <Codex t={ctx.t} can={ctx.can} />,
     },
     {
       id: 'search',
-      meta: { icon: '🔍', title: 'ค้นหาความรู้', en: 'Recall' },
+      meta: { icon: 'search', title: 'ค้นหาความรู้', en: 'Recall' },
       render: (ctx) => <Recall lang={ctx.language} />,
     },
   ],
@@ -33,8 +35,8 @@ export default {
     {
       group: 'ความรู้และความทรงจำ',
       items: [
-        { id: 'codex', icon: '📚' },
-        { id: 'search', icon: '🔍' },
+        { id: 'codex', icon: 'book' },
+        { id: 'search', icon: 'search' },
       ],
     },
   ],
