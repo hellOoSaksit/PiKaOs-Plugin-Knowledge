@@ -3,6 +3,7 @@
   "name": "Knowledge / RAG",
   "version": "0.1.0",
   "coreVersion": "^0.1.0",
+  "kind": "capability",
   "dependencies": [
     "postgres",
     "ai",
@@ -50,5 +51,5 @@
   "config": {
     "schema": "./config.schema.json"
   },
-  "migrations": "plugin-owned (backend/migrate.py: CREATE EXTENSION vector -> create_all -> HNSW; run by scripts.migrate_plugins)"
+  "migrations": "./backend/migrate.py"
 }
