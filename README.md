@@ -6,7 +6,13 @@ consume).
 
 - `backend/` — FastAPI router + services (ingestion, chunking, retrieval, answer), `manifest.json`,
   `config.schema.json`. Plugin id: **`knowledge`**.
-- `frontend/` — React screens (Codex, Recall) + per-plugin i18n.
+- `frontend/` — **retired 2026-07-17, backend-only for now.** The Codex/Recall screens were a
+  pre-plugin-era prototype: they merged mock seed data into live API results, and they imported two Core
+  modules that no longer exist (`screens/screens-builder.jsx`, deleted when the game screens went; the
+  `KNOWLEDGE`/`byId` seed exports, deleted with them). Because Core's frontend registry globs every linked
+  plugin, those dead imports took Core's whole dev server down with them — the screens weren't merely
+  stale, they were a landmine for anyone linking this plugin. The UI gets rebuilt on the U1 primitive
+  standard when the RAG v2 design lands; until then `git show HEAD~1:frontend/codex.jsx` is the reference.
 
 ## Install
 
